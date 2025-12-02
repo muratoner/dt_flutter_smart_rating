@@ -29,6 +29,9 @@ class _MyAppState extends State<MyApp> {
           seconds: 5,
         ), // Short for testing
         dialogInterval: const Duration(seconds: 30), // Short for testing
+        minimumSuccessfulRequests: 1,
+        theme:
+            SmartRatingTheme.vibrantGradient(), // Try modernDark() or vibrantGradient() too!
       ),
     );
   }
@@ -63,7 +66,7 @@ class _HomePageState extends State<HomePage> {
     // But to test the interceptor, we should make a request.
     // Let's make a request to a public API.
     try {
-      await _dio.get('https://jsonplaceholder.typicode.com/todos/1');
+      await _dio.get('https://mock.httpstatus.io/200');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Request Success! Wait 5s...')),
@@ -76,7 +79,7 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _simulateFailure() async {
     try {
-      await _dio.get('https://jsonplaceholder.typicode.com/invalid-url');
+      await _dio.get('https://mock.httpstatus.io/500');
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

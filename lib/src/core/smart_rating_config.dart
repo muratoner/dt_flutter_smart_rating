@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../ui/smart_rating_theme.dart';
 
 class SmartRatingConfig {
   /// The name of the application.
@@ -17,11 +18,23 @@ class SmartRatingConfig {
   /// Default is 10 minutes.
   final Duration waitDurationAfterSuccess;
 
+  /// The minimum number of consecutive successful network requests before showing the dialog.
+  /// Any failed request will reset this counter. Default is 20.
+  final int minimumSuccessfulRequests;
+
+  /// Whether to automatically show the dialog based on success count and timer.
+  /// If false, you must manually call SmartRating().showRatingDialog().
+  /// Default is true.
+  final bool autoTrigger;
+
   /// Localized texts for the dialog.
   final SmartRatingLocalizations localizations;
 
   /// The navigator key to show the dialog without a context.
   final GlobalKey<NavigatorState>? navigatorKey;
+
+  /// The theme for customizing dialog appearance.
+  final SmartRatingTheme theme;
 
   const SmartRatingConfig({
     required this.appName,
@@ -30,8 +43,11 @@ class SmartRatingConfig {
     this.navigatorKey,
     this.dialogInterval = const Duration(days: 30),
     this.waitDurationAfterSuccess = const Duration(minutes: 10),
+    this.minimumSuccessfulRequests = 20,
+    this.autoTrigger = true,
     this.localizations = const SmartRatingLocalizations(),
-  });
+    SmartRatingTheme? theme,
+  }) : theme = theme ?? const SmartRatingTheme();
 }
 
 class SmartRatingLocalizations {
@@ -57,6 +73,7 @@ class SmartRatingLocalizations {
     this.feedbackDescription = 'Please tell us how we can improve.',
     this.feedbackHint = 'Enter your feedback here...',
     this.submitFeedbackButtonText = 'Submit',
-    this.successMessage = 'Thank you for your feedback!',
+    this.successMessage =
+        'We appreciate your feedback and will use it to improve your experience!',
   });
 }

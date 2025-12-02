@@ -100,6 +100,32 @@ SmartRating().reportNetworkSuccess();
 SmartRating().reportNetworkFailure();
 ```
 
+### Manual Mode
+
+If you prefer to control when the dialog is shown (e.g., after a specific user action), you can disable automatic triggering:
+
+```dart
+SmartRatingConfig(
+  // ...
+  autoTrigger: false, // Disable automatic showing
+)
+```
+
+Then show the dialog manually whenever you want:
+
+```dart
+// Show dialog at any time (still respects dialogInterval)
+await SmartRating().showRatingDialog();
+
+// Example: Show after user completes an action
+void onUserCompletedOrder() {
+  // ... your logic
+  SmartRating().showRatingDialog();
+}
+```
+
+> **Note**: Even in manual mode, the dialog respects `dialogInterval` to avoid showing too frequently.
+
 ## Configuration
 
 `SmartRatingConfig` allows you to customize the behavior:
@@ -111,8 +137,68 @@ SmartRating().reportNetworkFailure();
 | `navigatorKey` | `GlobalKey<NavigatorState>?` | `null` | Key to show dialog without context. |
 | `appIcon` | `Widget?` | `null` | Icon to show in the dialog. |
 | `dialogInterval` | `Duration` | 30 days | Minimum time between showing the dialog. |
-| `waitDurationAfterSuccess` | `Duration` | 10 mins | Time to wait after success before showing. |
+| `waitDurationAfterSuccess` | `Duration` | 10 mins | Time to wait after reaching minimum success count. |
+| `minimumSuccessfulRequests` | `int` | 20 | Number of consecutive successful requests needed. Any failure resets this counter. |
+| `autoTrigger` | `bool` | `true` | Whether to automatically show dialog. Set to `false` for manual control. |
 | `localizations` | `SmartRatingLocalizations` | Default | Custom text strings. |
+| `theme` | `SmartRatingTheme` | Default | Visual theme customization. |
+
+## Theming
+
+The package includes a powerful theming system to customize the dialog's appearance.
+
+### Pre-built Themes
+
+```dart
+// Modern light theme with gradient
+SmartRatingConfig(
+  // ...
+  theme: SmartRatingTheme.modernLight(),
+)
+
+// Dark theme with vibrant accents
+SmartRatingConfig(
+  // ...
+  theme: SmartRatingTheme.modernDark(),
+)
+
+// Vibrant gradient theme
+SmartRatingConfig(
+  // ...
+  theme: SmartRatingTheme.vibrantGradient(),
+)
+```
+
+### Custom Theme
+
+You can fully customize every aspect of the dialog:
+
+```dart
+SmartRatingConfig(
+  // ...
+  theme: SmartRatingTheme(
+    backgroundColor: Colors.white,
+    borderRadius: 28.0,
+    backgroundGradient: [Color(0xFFF8F9FA), Color(0xFFFFFFFF)],
+    shadows: [
+      BoxShadow(
+        color: Colors.black.withOpacity(0.08),
+        blurRadius: 32.0,
+        offset: Offset(0, 8),
+      ),
+    ],
+    titleStyle: TextStyle(
+      fontSize: 24,
+      fontWeight: FontWeight.bold,
+      color: Color(0xFF1A1A1A),
+    ),
+    starColor: Color(0xFFFFB800),
+    starSize: 52.0,
+    primaryButtonColor: Color(0xFF6366F1),
+    // ... and many more customization options
+  ),
+)
+```
 
 ## License
 
