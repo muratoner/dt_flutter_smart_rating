@@ -42,7 +42,7 @@ class SmartRatingConfig {
     this.appIcon,
     this.navigatorKey,
     this.dialogInterval = const Duration(days: 30),
-    this.waitDurationAfterSuccess = const Duration(minutes: 10),
+    this.waitDurationAfterSuccess = const Duration(minutes: 5),
     this.minimumSuccessfulRequests = 20,
     this.autoTrigger = true,
     this.localizations = const SmartRatingLocalizations(),
