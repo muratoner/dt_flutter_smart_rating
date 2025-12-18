@@ -19,7 +19,8 @@ Add `dt_flutter_smart_rating` to your `pubspec.yaml`:
 ```yaml
 dependencies:
   dt_flutter_smart_rating:
-    path: ../ # or git url
+    git:
+      url: https://github.com/muratoner/dt_flutter_smart_rating.git
 ```
 
 ## Usage
