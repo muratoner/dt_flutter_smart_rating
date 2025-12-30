@@ -2,6 +2,8 @@
 
 A smart rating dialog package for Flutter that prompts users to rate the app based on their usage experience and network success.
 
+📖 **[Türkçe Dokümantasyon için tıklayın](README_TR.md)**
+
 ## Features
 
 - **Smart Triggering**: Shows the rating dialog only after a period of successful network activity (default 5 seconds).
@@ -11,16 +13,33 @@ A smart rating dialog package for Flutter that prompts users to rate the app bas
     - **1-3 Stars**: Asks for feedback within the app.
 - **Persistence**: Remembers when the dialog was last shown and respects a cooldown period (default 30 days).
 - **Localization**: Fully customizable text strings.
+- **Failure Tracking**: Track network failures and show rating dialog only when conditions are met.
 
 ## Installation
 
 Add `dt_flutter_smart_rating` to your `pubspec.yaml`:
 
+### Latest Version (Recommended)
 ```yaml
 dependencies:
   dt_flutter_smart_rating:
     git:
       url: https://github.com/muratoner/dt_flutter_smart_rating.git
+      ref: main  # Always get the latest version
+```
+
+### Specific Version (Stable)
+```yaml
+dependencies:
+  dt_flutter_smart_rating:
+    git:
+      url: https://github.com/muratoner/dt_flutter_smart_rating.git
+      ref: v0.0.2  # Pin to a specific version
+```
+
+Then run:
+```bash
+flutter pub get
 ```
 
 ## Usage

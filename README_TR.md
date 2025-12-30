@@ -1,10 +1,41 @@
-# 🎯 Smart Rating - Yeni Özellikler Kullanım Kılavuzu
+# Smart Rating for Flutter - Türkçe Dokümantasyon
 
-## 📦 Versiyon 0.0.2 - Failure Tracking & Smart Controls
+Flutter uygulamaları için kullanıcı deneyimi ve network başarısına göre akıllıca rating isteyen bir paket.
 
-Bu güncellemede, `dt_flutter_smart_rating` paketine **geriye dönük uyumlu** (backward compatible) önemli yeni özellikler eklendi.
+📖 **[For English documentation, click here](README.md)**
 
 ---
+
+## 📦 Kurulum
+
+`pubspec.yaml` dosyanıza `dt_flutter_smart_rating` paketini ekleyin:
+
+### En Son Versiyon (Önerilen)
+```yaml
+dependencies:
+  dt_flutter_smart_rating:
+    git:
+      url: https://github.com/muratoner/dt_flutter_smart_rating.git
+      ref: main  # Her zaman en son versiyonu kullan
+```
+
+### Belirli Bir Versiyon (Stabil)
+```yaml
+dependencies:
+  dt_flutter_smart_rating:
+    git:
+      url: https://github.com/muratoner/dt_flutter_smart_rating.git
+      ref: v0.0.2  # Belirli bir versiyona sabitle
+```
+
+Ardından çalıştırın:
+```bash
+flutter pub get
+```
+
+---
+
+## 📋 Versiyon 0.0.2 - Failure Tracking & Smart Controls
 
 ## 🆕 Yeni Özellikler
 
