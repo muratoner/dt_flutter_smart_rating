@@ -115,7 +115,7 @@ SmartRatingConfig(
 Then show the dialog manually whenever you want:
 
 ```dart
-// Show dialog at any time (still respects dialogInterval)
+// Basic usage - Show dialog at any time (still respects dialogInterval)
 await SmartRating().showRatingDialog();
 
 // Example: Show after user completes an action
@@ -126,6 +126,61 @@ void onUserCompletedOrder() {
 ```
 
 > **Note**: Even in manual mode, the dialog respects `dialogInterval` to avoid showing too frequently.
+
+### Smart Controls for Manual Triggering
+
+When manually showing the dialog, you can use smart controls to ensure optimal user experience:
+
+```dart
+// Only show if there have been NO network failures
+await SmartRating().showRatingDialog(
+  onlyIfNoFailures: true,
+);
+
+// Only show if minimum success count has been reached
+await SmartRating().showRatingDialog(
+  requireMinimumSuccess: true,
+);
+
+// Allow up to 2 failures
+await SmartRating().showRatingDialog(
+  maximumAllowedFailures: 2,
+);
+
+// Combine multiple conditions
+await SmartRating().showRatingDialog(
+  requireMinimumSuccess: true,
+  maximumAllowedFailures: 1,
+);
+```
+
+**Use Cases:**
+- **Critical flows** (payments, registrations): Use `onlyIfNoFailures: true`
+- **Quality assurance**: Use `requireMinimumSuccess: true`
+- **Tolerant flows**: Use `maximumAllowedFailures: N`
+
+### Failure Tracking & Session Management
+
+Monitor network quality and reset counters when needed:
+
+```dart
+// Check current stats
+int failures = SmartRating().failureCount;
+int successes = SmartRating().successCount;
+bool anyFailures = SmartRating().hasFailures;
+
+debugPrint('Network stats: $successes successes, $failures failures');
+
+// Reset counters for new session/flow
+void startNewUserSession() {
+  SmartRating().resetCounters();
+}
+
+// Example: Reset after user logs in
+void onUserLogin() {
+  SmartRating().resetCounters(); // Fresh start for new session
+}
+```
 
 ## Configuration
 

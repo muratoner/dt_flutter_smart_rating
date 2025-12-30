@@ -13,6 +13,8 @@ class SmartRating {
   final SmartRatingStorage _storage = SmartRatingStorage();
   Timer? _successTimer;
   int _successCount = 0;
+  int _failureCount = 0;
+  bool _hasAnyFailure = false;
 
   /// Initialize the SmartRating package with configuration.
   void initialize(SmartRatingConfig config) {
@@ -56,21 +58,84 @@ class SmartRating {
 
   /// Report a failed network request.
   /// Resets the success counter and cancels any pending timer.
+  /// Also increments the failure counter.
   void reportNetworkFailure() {
+    _failureCount++;
+    _hasAnyFailure = true;
     debugPrint(
-      'SmartRating: Network failure. Resetting success count from $_successCount to 0',
+      'SmartRating: Network failure #$_failureCount. Resetting success count from $_successCount to 0',
     );
     _successCount = 0;
     _successTimer?.cancel();
     _successTimer = null;
   }
 
+  /// Reset all counters (success and failure).
+  /// Useful when starting a new session or flow.
+  void resetCounters() {
+    debugPrint('SmartRating: Resetting all counters');
+    _successCount = 0;
+    _failureCount = 0;
+    _hasAnyFailure = false;
+    _successTimer?.cancel();
+    _successTimer = null;
+  }
+
+  /// Get the current failure count.
+  int get failureCount => _failureCount;
+
+  /// Check if any failure has occurred.
+  bool get hasFailures => _hasAnyFailure;
+
+  /// Get the current success count.
+  int get successCount => _successCount;
+
   /// Manually show the rating dialog.
   /// This bypasses the automatic trigger logic but still respects dialogInterval.
   /// Use this when autoTrigger is false or when you want to show the dialog at a specific moment.
-  Future<void> showRatingDialog() async {
+  ///
+  /// [requireMinimumSuccess] - If true, only shows the dialog if the success count
+  /// has reached the configured minimum. Default is false.
+  ///
+  /// [onlyIfNoFailures] - If true, only shows the dialog if there have been no
+  /// network failures. Default is false.
+  ///
+  /// [maximumAllowedFailures] - If set, only shows the dialog if the failure count
+  /// is less than or equal to this value. Default is null (no limit).
+  Future<void> showRatingDialog({
+    bool requireMinimumSuccess = false,
+    bool onlyIfNoFailures = false,
+    int? maximumAllowedFailures,
+  }) async {
     if (_config == null) {
       debugPrint('SmartRating not initialized. Call initialize() first.');
+      return;
+    }
+
+    // Check minimum success requirement
+    if (requireMinimumSuccess &&
+        _successCount < _config!.minimumSuccessfulRequests) {
+      debugPrint(
+        'SmartRating: requireMinimumSuccess=true but success count ($_successCount) '
+        'is below minimum (${_config!.minimumSuccessfulRequests}). Dialog not shown.',
+      );
+      return;
+    }
+
+    // Check no failures requirement
+    if (onlyIfNoFailures && _hasAnyFailure) {
+      debugPrint(
+        'SmartRating: onlyIfNoFailures=true but $_failureCount failure(s) occurred. Dialog not shown.',
+      );
+      return;
+    }
+
+    // Check maximum allowed failures
+    if (maximumAllowedFailures != null &&
+        _failureCount > maximumAllowedFailures) {
+      debugPrint(
+        'SmartRating: $_failureCount failures exceeded maximum allowed ($maximumAllowedFailures). Dialog not shown.',
+      );
       return;
     }
 
@@ -119,10 +184,8 @@ class SmartRating {
         if (result != null) {
           _storage.setLastActionDate(DateTime.now());
         }
-        // Reset counters after dialog is shown
-        _successCount = 0;
-        _successTimer?.cancel();
-        _successTimer = null;
+        // Reset all counters after dialog is shown
+        resetCounters();
       });
     } else {
       debugPrint(
