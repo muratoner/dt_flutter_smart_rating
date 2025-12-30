@@ -1,12 +1,21 @@
-# Smart Rating for Flutter - Türkçe Dokümantasyon
+# Flutter için Smart Rating
 
-Flutter uygulamaları için kullanıcı deneyimi ve network başarısına göre akıllıca rating isteyen bir paket.
+Flutter uygulamaları için, kullanıcıların kullanım deneyimine ve ağ başarısına dayalı olarak uygulamayı puanlamasını isteyen akıllı bir derecelendirme diyalog paketi.
 
 📖 **[For English documentation, click here](README.md)**
 
----
+## Özellikler
 
-## 📦 Kurulum
+- **Akıllı Tetikleme**: Derecelendirme diyaloğunu yalnızca belirli bir süre boyunca başarılı ağ etkinliği olduğunda gösterir (varsayılan 5 saniye).
+- **Ağ İzleme**: Bir Dio interceptor kullanarak ağ trafiğini otomatik olarak izler (veya manuel raporlama).
+- **Koşullu Mantık**:
+    - **4-5 Yıldız**: Kullanıcıyı mağazaya yönlendirir.
+    - **1-3 Yıldız**: Uygulama içinde geri bildirim ister.
+- **Kalıcılık**: Diyaloğun en son ne zaman gösterildiğini hatırlar ve bir bekleme süresine (varsayılan 30 gün) saygı duyar.
+- **Yerelleştirme**: Tamamen özelleştirilebilir metinler.
+- **Hata Takibi**: Ağ hatalarını takip eder ve derecelendirme diyaloğunu yalnızca koşullar sağlandığında gösterir.
+
+## Kurulum
 
 `pubspec.yaml` dosyanıza `dt_flutter_smart_rating` paketini ekleyin:
 
@@ -33,325 +42,239 @@ Ardından çalıştırın:
 flutter pub get
 ```
 
----
+## Kullanım
 
-## 📋 Versiyon 0.0.2 - Failure Tracking & Smart Controls
+### 1. Başlatma
 
-## 🆕 Yeni Özellikler
-
-### 1. **Failure Tracking Sistemi**
-Her network hatası artık takip ediliyor ve sayılıyor.
+`SmartRating` singleton'ını `main.dart` veya `App` widget'ınızda başlatın. Diyaloğun ağ katmanından doğrudan bir context referansı olmadan gösterilmesine izin vermek için bir `navigatorKey` sağlamanız gerekir.
 
 ```dart
-// Hata sayısını öğren
-int totalFailures = SmartRating().failureCount;
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
-// Herhangi bir hata oldu mu?
-bool hadIssues = SmartRating().hasFailures;
+void main() {
+  runApp(const MyApp());
+}
 
-// Başarı sayısı
-int totalSuccesses = SmartRating().successCount;
-```
+class MyApp extends StatefulWidget {
+  const MyApp({super.key});
 
----
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
 
-### 2. **Smart Manual Triggering**
-`showRatingDialog()` metodu artık 3 yeni parametre ile geliştirildi:
-
-#### a) `onlyIfNoFailures` - Sadece Hiç Hata Yoksa Göster
-```dart
-// Kritik flow'larda kullanın (ödeme, kayıt, vb.)
-await SmartRating().showRatingDialog(
-  onlyIfNoFailures: true,
-);
-```
-
-**Kullanım Senaryosu:**
-```dart
-// Randevu oluşturma flow'u bittiğinde
-Future<void> createAppointment() async {
-  try {
-    // API çağrıları...
-    await apiService.createAppointment();
-    
-    // Eğer hiç hata olmadıysa rating iste
-    await SmartRating().showRatingDialog(
-      onlyIfNoFailures: true,
+class _MyAppState extends State<MyApp> {
+  @override
+  void initState() {
+    super.initState();
+    SmartRating().initialize(
+      SmartRatingConfig(
+        appName: 'My App',
+        storeUrl: 'https://apps.apple.com/app/id...', // veya Play Store URL
+        navigatorKey: navigatorKey,
+        appIcon: Image.asset('assets/icon.png', width: 60, height: 60),
+      ),
     );
-  } catch (e) {
-    // Hata oldu, zaten SmartRating.reportNetworkFailure() çağrıldı
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      navigatorKey: navigatorKey,
+      home: const HomePage(),
+    );
   }
 }
 ```
 
-#### b) `requireMinimumSuccess` - Minimum Başarı Sayısı Kontrolü
+### 2. Ağı İzleme
+
+#### Dio Kullanarak (Opsiyonel)
+
+Projeniz Dio kullanıyorsa, önce `pubspec.yaml` dosyanıza ekleyin:
+
+```yaml
+dependencies:
+  dio: ^5.4.1
+```
+
+Ardından interceptor'ı ayrı olarak import edin ve Dio örneğinize ekleyin:
+
 ```dart
-// Sadece yeterli başarılı request varsa göster
+import 'package:dt_flutter_smart_rating/src/network/smart_rating_dio_interceptor.dart';
+
+final dio = Dio();
+dio.interceptors.add(SmartRatingDioInterceptor());
+```
+
+> **Not**: Dio interceptor, Dio yüklü olmadığında derleme hatalarını önlemek için ana paketten dışa aktarılmaz. Prodüksiyonda, `lib/src/network/smart_rating_dio_interceptor.dart` dosyasını kendi projenize kopyalayın veya doğrudan import edin (bu, implementation import hakkında bir lint uyarısı tetikleyebilir).
+
+#### Manuel Raporlama (Dio olmayan projeler için)
+
+Dio kullanmıyorsanız, başarı veya başarısızlığı manuel olarak raporlayabilirsiniz:
+
+```dart
+// Başarılı olduğunda
+SmartRating().reportNetworkSuccess();
+
+// Başarısız olduğunda
+SmartRating().reportNetworkFailure();
+```
+
+### Manuel Mod
+
+Diyaloğun ne zaman gösterileceğini kontrol etmeyi tercih ederseniz (örneğin, belirli bir kullanıcı eyleminden sonra), otomatik tetiklemeyi devre dışı bırakabilirsiniz:
+
+```dart
+SmartRatingConfig(
+  // ...
+  autoTrigger: false, // Otomatik göstermeyi devre dışı bırak
+)
+```
+
+Ardından diyaloğu istediğiniz zaman manuel olarak gösterin:
+
+```dart
+// Temel kullanım - Diyaloğu istediğiniz zaman gösterin (yine de dialogInterval'a saygı duyar)
+await SmartRating().showRatingDialog();
+
+// Örnek: Kullanıcı bir işlemi tamamladıktan sonra göster
+void onUserCompletedOrder() {
+  // ... mantığınız
+  SmartRating().showRatingDialog();
+}
+```
+
+> **Not**: Manuel modda bile, diyalog çok sık gösterilmemesi için `dialogInterval`'a saygı duyar.
+
+### Manuel Tetikleme için Akıllı Kontroller
+
+Diyaloğu manuel olarak gösterirken, optimum kullanıcı deneyimi sağlamak için akıllı kontrolleri kullanabilirsiniz:
+
+```dart
+// Sadece HİÇ ağ hatası olmadıysa göster
+await SmartRating().showRatingDialog(
+  onlyIfNoFailures: true,
+);
+
+// Sadece minimum başarı sayısına ulaşıldıysa göster
 await SmartRating().showRatingDialog(
   requireMinimumSuccess: true,
 );
-```
 
-**Kullanım Senaryosu:**
-```dart
-// Kullanıcı profil sayfasını dolduruyor
-Future<void> completeProfile() async {
-  // Birden fazla API çağrısı yapıldı
-  // Config'de minimumSuccessfulRequests = 20 olsun
-  
-  // Sadece 20+ başarılı request varsa rating iste
-  await SmartRating().showRatingDialog(
-    requireMinimumSuccess: true,
-  );
-}
-```
-
-#### c) `maximumAllowedFailures` - Tolerans Seviyesi
-```dart
-// Maksimum 2 hataya kadar tolere et
+// 2 hataya kadar izin ver
 await SmartRating().showRatingDialog(
   maximumAllowedFailures: 2,
 );
-```
 
-**Kullanım Senaryosu:**
-```dart
-// Normal flow - birkaç hata tolere edilebilir
-Future<void> browseProducts() async {
-  // Kullanıcı ürün listesinde gezindi
-  // Bazı resimler yüklenmemiş olabilir (2-3 hata)
-  // Ama genel deneyim iyiyse rating iste
-  
-  await SmartRating().showRatingDialog(
-    maximumAllowedFailures: 3,
-  );
-}
-```
-
----
-
-### 3. **Birden Fazla Koşulu Birleştirme**
-```dart
-// Hem minimum başarı, hem de maksimum 1 hata
+// Birden fazla koşulu birleştir
 await SmartRating().showRatingDialog(
   requireMinimumSuccess: true,
   maximumAllowedFailures: 1,
 );
 ```
 
----
-
-### 4. **Session Management - Counter Reset**
-Yeni session başlatıldığında sayaçları sıfırlayın:
-
-```dart
-void resetCounters() {
-  SmartRating().resetCounters();
-}
-```
-
 **Kullanım Senaryoları:**
+- **Kritik akışlar** (ödemeler, kayıtlar): `onlyIfNoFailures: true` kullanın
+- **Kalite güvencesi**: `requireMinimumSuccess: true` kullanın
+- **Toleranslı akışlar**: `maximumAllowedFailures: N` kullanın
+
+### Hata Takibi ve Oturum Yönetimi
+
+Ağ kalitesini izleyin ve gerektiğinde sayaçları sıfırlayın:
+
 ```dart
-// Kullanıcı giriş yaptığında
-Future<void> onUserLogin() async {
-  await authService.login();
-  
-  // Yeni session, temiz başlangıç
+// Mevcut istatistikleri kontrol et
+int failures = SmartRating().failureCount;
+int successes = SmartRating().successCount;
+bool anyFailures = SmartRating().hasFailures;
+
+debugPrint('Network stats: $successes successes, $failures failures');
+
+// Yeni oturum/akış için sayaçları sıfırla
+void startNewUserSession() {
   SmartRating().resetCounters();
 }
 
-// Yeni flow başladığında
-void startNewAppointmentFlow() {
-  // Önceki flow'un hataları yeni flow'u etkilemeyecek
-  SmartRating().resetCounters();
-}
-
-// Uygulama yeniden başlatıldığında
-@override
-void initState() {
-  super.initState();
-  
-  // Her app açılışında temiz başla
-  SmartRating().resetCounters();
+// Örnek: Kullanıcı giriş yaptıktan sonra sıfırla
+void onUserLogin() {
+  SmartRating().resetCounters(); // Yeni oturum için temiz başlangıç
 }
 ```
 
----
+## Konfigürasyon
 
-## 🎓 Pratik Kullanım Örnekleri
+`SmartRatingConfig`, davranışı özelleştirmenize olanak tanır:
 
-### Örnek 1: E-Ticaret Sipariş Flow'u
+| Özellik | Tür | Varsayılan | Açıklama |
+|---|---|---|---|
+| `appName` | `String` | Zorunlu | Uygulamanızın adı. |
+| `storeUrl` | `String` | Zorunlu | Derecelendirme için yönlendirilecek URL. |
+| `navigatorKey` | `GlobalKey<NavigatorState>?` | `null` | Diyaloğu context olmadan göstermek için anahtar. |
+| `appIcon` | `Widget?` | `null` | Diyalogda gösterilecek simge. |
+| `dialogInterval` | `Duration` | 30 gün | Diyaloğun gösterilmesi arasındaki minimum süre. |
+| `waitDurationAfterSuccess` | `Duration` | 5 saniye | Minimum başarı sayısına ulaşıldıktan sonra beklenecek süre. |
+| `minimumSuccessfulRequests` | `int` | 20 | Gereken ardışık başarılı istek sayısı. Herhangi bir hata bu sayacı sıfırlar. |
+| `autoTrigger` | `bool` | `true` | Diyaloğun otomatik olarak gösterilip gösterilmeyeceği. Manuel kontrol için `false` yapın. |
+| `localizations` | `SmartRatingLocalizations` | Varsayılan | Özel metin dizeleri. |
+| `theme` | `SmartRatingTheme` | Varsayılan | Görsel tema özelleştirmesi. |
+
+## Tema (Theming)
+
+Paket, diyaloğun görünümünü özelleştirmek için güçlü bir tema sistemi içerir.
+
+### Hazır Temalar
+
 ```dart
-class CheckoutController {
-  Future<void> completeOrder() async {
-    // Sepet doğrulama
-    await cartService.validate();
-    
-    // Ödeme işlemi
-    await paymentService.processPayment();
-    
-    // Sipariş oluşturma
-    await orderService.createOrder();
-    
-    // ✅ Kritik flow - sadece hiç hata yoksa rating iste
-    await SmartRating().showRatingDialog(
-      onlyIfNoFailures: true,
-      requireMinimumSuccess: true,
-    );
-  }
-}
+// Gradyan ile modern açık tema
+SmartRatingConfig(
+  // ...
+  theme: SmartRatingTheme.modernLight(),
+)
+
+// Canlı vurgulara sahip koyu tema
+SmartRatingConfig(
+  // ...
+  theme: SmartRatingTheme.modernDark(),
+)
+
+// Canlı gradyan tema
+SmartRatingConfig(
+  // ...
+  theme: SmartRatingTheme.vibrantGradient(),
+)
 ```
 
----
+### Özel Tema
 
-### Örnek 2: Sosyal Medya Feed Browsing
+Diyaloğun her yönünü tamamen özelleştirebilirsiniz:
+
 ```dart
-class FeedController {
-  Future<void> onUserScrolledToEnd() async {
-    // Kullanıcı feed'i gezdi
-    // Bazı görseller yüklenmemiş olabilir
-    // Ama genel deneyim iyiyse rating isteyebiliriz
-    
-    await SmartRating().showRatingDialog(
-      maximumAllowedFailures: 5, // 5 görsel yüklenememiş olabilir
-    );
-  }
-}
-```
-
----
-
-### Örnek 3: Çoklu Session App
-```dart
-class SessionManager {
-  Future<void> onUserLogout() async {
-    await authService.logout();
-    
-    // Logout öncesi rating iste
-    // Bu session'daki deneyim nasıldı?
-    await SmartRating().showRatingDialog(
-      onlyIfNoFailures: true,
-    );
-    
-    // Session bitti, counter'ları resetle
-    SmartRating().resetCounters();
-  }
-  
-  Future<void> onUserLogin() async {
-    await authService.login();
-    
-    // Yeni session, temiz başla
-    SmartRating().resetCounters();
-  }
-}
-```
-
----
-
-### Örnek 4: Debug/Monitoring Dashboard
-```dart
-class NetworkStatsWidget extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Column(
-        children: [
-          Text('Successes: ${SmartRating().successCount}'),
-          Text('Failures: ${SmartRating().failureCount}'),
-          Text('Has Issues: ${SmartRating().hasFailures}'),
-          
-          ElevatedButton(
-            onPressed: () {
-              SmartRating().resetCounters();
-            },
-            child: Text('Reset Stats'),
-          ),
-        ],
+SmartRatingConfig(
+  // ...
+  theme: SmartRatingTheme(
+    backgroundColor: Colors.white,
+    borderRadius: 28.0,
+    backgroundGradient: [Color(0xFFF8F9FA), Color(0xFFFFFFFF)],
+    shadows: [
+      BoxShadow(
+        color: Colors.black.withOpacity(0.08),
+        blurRadius: 32.0,
+        offset: Offset(0, 8),
       ),
-    );
-  }
-}
+    ],
+    titleStyle: TextStyle(
+      fontSize: 24,
+      fontWeight: FontWeight.bold,
+      color: Color(0xFF1A1A1A),
+    ),
+    starColor: Color(0xFFFFB800),
+    starSize: 52.0,
+    primaryButtonColor: Color(0xFF6366F1),
+    // ... ve daha birçok özelleştirme seçeneği
+  ),
+)
 ```
 
----
+## Lisans
 
-## 🔄 Geriye Dönük Uyumluluk
-
-**ÖNEMLI:** Tüm mevcut kodlar aynen çalışmaya devam edecek!
-
-```dart
-// Eski kod - HİÇBİR DEĞİŞİKLİK GEREKMİYOR
-await SmartRating().showRatingDialog();
-
-// Yeni özellikler tamamen opsiyonel
-await SmartRating().showRatingDialog(
-  onlyIfNoFailures: true, // İstersen ekle
-);
-```
-
----
-
-## 📊 Karar Ağacı: Hangi Parametreyi Kullanmalıyım?
-
-```
-┌─────────────────────────────────────────────┐
-│ Flow türün ne?                              │
-└───────────────┬─────────────────────────────┘
-                │
-        ┌───────┴───────┐
-        │               │
-    KRİTİK         NORMAL
-(Ödeme, Kayıt)  (Browse, Search)
-        │               │
-        │               │
-    onlyIfNoFailures: true    maximumAllowedFailures: N
-    requireMinimumSuccess: true
-```
-
----
-
-## ✅ Test Senaryoları
-
-```dart
-void testSmartRating() {
-  // Senaryo 1: Hiç hata yok
-  // 20 başarılı request
-  // ✅ Dialog gösterilir
-  
-  // Senaryo 2: 1 hata var
-  // onlyIfNoFailures: true
-  // ❌ Dialog gösterilmez
-  
-  // Senaryo 3: 2 hata var
-  // maximumAllowedFailures: 3
-  // ✅ Dialog gösterilir (2 <= 3)
-  
-  // Senaryo 4: 15 başarılı request
-  // requireMinimumSuccess: true (min: 20)
-  // ❌ Dialog gösterilmez (15 < 20)
-}
-```
-
----
-
-## 🚀 Hızlı Başlangıç
-
-1. **Paketin en son versiyonunu çekin**
-2. **Hiçbir değişiklik yapmayın** - mevcut kod çalışır
-3. **İstediğiniz yerlerde yeni parametreleri ekleyin**:
-
-```dart
-// Kritik flow'larda
-await SmartRating().showRatingDialog(onlyIfNoFailures: true);
-
-// Session değişimlerinde
-SmartRating().resetCounters();
-```
-
----
-
-## 📞 Destek
-
-Sorularınız için:
-- GitHub Issues
-- Package maintainer: @muratoner
+MIT
