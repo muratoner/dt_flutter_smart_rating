@@ -119,6 +119,25 @@ class _HomePageState extends State<HomePage> {
     await SmartRating().showRatingDialog();
   }
 
+  Future<void> _showWithCustomFeedback() async {
+    await SmartRating().showRatingDialog(
+      onSubmitFeedback: (feedback) async {
+        debugPrint('Custom feedback received: $feedback');
+        // Simulate API call
+        await Future.delayed(const Duration(seconds: 1));
+        if (!mounted) return;
+        Navigator.of(context).pop(); // Close the dialog
+        if (SmartRating().config != null) {
+          await showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) => ThankYouDialog(config: SmartRating().config!),
+          );
+        }
+      },
+    );
+  }
+
   void _showSnackbar(String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).removeCurrentSnackBar();
@@ -262,6 +281,12 @@ class _HomePageState extends State<HomePage> {
                   backgroundColor: Theme.of(
                     context,
                   ).colorScheme.primaryContainer,
+                ),
+                ActionChip(
+                  avatar: const Icon(Icons.comment),
+                  label: const Text('With Custom Feedback'),
+                  onPressed: _showWithCustomFeedback,
+                  tooltip: 'Shows dialog with custom feedback handler',
                 ),
               ],
             ),

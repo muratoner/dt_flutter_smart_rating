@@ -84,6 +84,9 @@ class SmartRating {
   /// Get the current failure count.
   int get failureCount => _failureCount;
 
+  /// Get the current configuration.
+  SmartRatingConfig? get config => _config;
+
   /// Check if any failure has occurred.
   bool get hasFailures => _hasAnyFailure;
 
@@ -106,6 +109,7 @@ class SmartRating {
     bool requireMinimumSuccess = false,
     bool onlyIfNoFailures = false,
     int? maximumAllowedFailures,
+    Future<void> Function(String feedback)? onSubmitFeedback,
   }) async {
     if (_config == null) {
       debugPrint('SmartRating not initialized. Call initialize() first.');
@@ -139,10 +143,16 @@ class SmartRating {
       return;
     }
 
-    await _checkAndShowDialog(forceCheck: false);
+    await _checkAndShowDialog(
+      forceCheck: false,
+      onSubmitFeedback: onSubmitFeedback,
+    );
   }
 
-  Future<void> _checkAndShowDialog({bool forceCheck = false}) async {
+  Future<void> _checkAndShowDialog({
+    bool forceCheck = false,
+    Future<void> Function(String feedback)? onSubmitFeedback,
+  }) async {
     if (_config == null) return;
 
     final lastShown = await _storage.getLastShownDate();
@@ -178,7 +188,11 @@ class SmartRating {
       debugPrint('SmartRating: Showing dialog');
       showDialog(
         context: context,
-        builder: (context) => RatingDialog(config: _config!),
+        builder:
+            (context) => RatingDialog(
+              config: _config!,
+              onSubmitFeedback: onSubmitFeedback ,
+            ),
       ).then((result) {
         _storage.setLastShownDate(DateTime.now());
         if (result != null) {

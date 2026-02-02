@@ -6,8 +6,13 @@ import 'thank_you_dialog.dart';
 
 class RatingDialog extends StatefulWidget {
   final SmartRatingConfig config;
+  final Future<void> Function(String feedback)? onSubmitFeedback;
 
-  const RatingDialog({super.key, required this.config});
+  const RatingDialog({
+    super.key,
+    required this.config,
+    this.onSubmitFeedback,
+  });
 
   @override
   State<RatingDialog> createState() => _RatingDialogState();
@@ -86,20 +91,22 @@ class _RatingDialogState extends State<RatingDialog>
     if (!mounted) return;
 
     final feedbackText = _feedbackController.text;
-    // Close rating dialog
-    Navigator.of(context).pop('feedback: $feedbackText');
 
-    // Small delay to ensure dialog is closed
-    await Future.delayed(const Duration(milliseconds: 100));
+    if (widget.onSubmitFeedback != null) {
+      await widget.onSubmitFeedback!(feedbackText);
+    } else {
+      // Close rating dialog
+      Navigator.of(context).pop('feedback: $feedbackText');
 
-    if (!mounted) return;
+      // Small delay to ensure dialog is closed
+      await Future.delayed(const Duration(milliseconds: 100));
 
-    // Show thank you dialog
-    await showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => ThankYouDialog(config: widget.config),
-    );
+      await showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => ThankYouDialog(config: widget.config),
+      );
+    }
   }
 
   @override
