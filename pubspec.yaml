@@ -1,6 +1,6 @@
 name: dt_flutter_smart_rating
 description: "A smart rating dialog package for Flutter that shows rating prompts based on network success and user experience quality."
-version: 0.0.3
+version: 0.0.4
 homepage:
 
 environment:
