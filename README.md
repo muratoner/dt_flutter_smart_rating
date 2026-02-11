@@ -17,29 +17,33 @@ A smart rating dialog package for Flutter that prompts users to rate the app bas
 
 ## Installation
 
-Add `dt_flutter_smart_rating` to your `pubspec.yaml`:
+### Depend on it
 
-### Latest Version (Recommended)
-```yaml
-dependencies:
-  dt_flutter_smart_rating:
-    git:
-      url: https://github.com/muratoner/dt_flutter_smart_rating.git
-      ref: main  # Always get the latest version
-```
+Run this command:
 
-### Specific Version (Stable)
-```yaml
-dependencies:
-  dt_flutter_smart_rating:
-    git:
-      url: https://github.com/muratoner/dt_flutter_smart_rating.git
-      ref: v0.0.2  # Pin to a specific version
-```
-
-Then run:
+With Dart:
 ```bash
-flutter pub get
+dart pub add dt_flutter_smart_rating
+```
+
+With Flutter:
+```bash
+flutter pub add dt_flutter_smart_rating
+```
+
+This will add a line like this to your package's `pubspec.yaml` (and run an implicit `flutter pub get`):
+
+```yaml
+dependencies:
+  dt_flutter_smart_rating: ^0.0.4
+```
+
+### Import it
+
+Now in your Dart code, you can use:
+
+```dart
+import 'package:dt_flutter_smart_rating/dt_flutter_smart_rating.dart';
 ```
 
 ## Usage
@@ -88,29 +92,35 @@ class _MyAppState extends State<MyApp> {
 
 ### 2. Monitor Network
 
-#### Using Dio (Optional)
+To report network activity to `SmartRating`, call the manual reporting methods in your network or API layer.
 
-If your project uses Dio, first add it to your app's `pubspec.yaml`:
+#### Using Dio (Example Interceptor)
 
-```yaml
-dependencies:
-  dio: ^5.4.1
-```
-
-Then import the interceptor separately and add it to your Dio instance:
+If you use [Dio](https://pub.dev/packages/dio), you can create a simple interceptor to automate reporting:
 
 ```dart
-import 'package:dt_flutter_smart_rating/src/network/smart_rating_dio_interceptor.dart';
+class SmartRatingInterceptor extends Interceptor {
+  @override
+  void onResponse(Response response, ResponseInterceptorHandler handler) {
+    SmartRating().reportNetworkSuccess();
+    super.onResponse(response, handler);
+  }
 
+  @override
+  void onError(DioException err, ErrorInterceptorHandler handler) {
+    SmartRating().reportNetworkFailure();
+    super.onError(err, handler);
+  }
+}
+
+// Add it to your Dio instance:
 final dio = Dio();
-dio.interceptors.add(SmartRatingDioInterceptor());
+dio.interceptors.add(SmartRatingInterceptor());
 ```
 
-> **Note**: The Dio interceptor is not exported from the main package to avoid compilation errors when Dio is not installed. In production, copy `lib/src/network/smart_rating_dio_interceptor.dart` to your own project, or import it directly (which may trigger a lint warning about implementation imports).
+#### Manual Reporting
 
-#### Manual Reporting (For non-Dio projects)
-
-If you are not using Dio, you can manually report success or failure:
+If you are not using Dio, you can manually report success or failure based on your network response:
 
 ```dart
 // On success

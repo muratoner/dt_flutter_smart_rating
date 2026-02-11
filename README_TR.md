@@ -17,29 +17,33 @@ Flutter uygulamaları için, kullanıcıların kullanım deneyimine ve ağ başa
 
 ## Kurulum
 
-`pubspec.yaml` dosyanıza `dt_flutter_smart_rating` paketini ekleyin:
+### Bağımlılık Olarak Ekle
 
-### En Son Versiyon (Önerilen)
-```yaml
-dependencies:
-  dt_flutter_smart_rating:
-    git:
-      url: https://github.com/muratoner/dt_flutter_smart_rating.git
-      ref: main  # Her zaman en son versiyonu kullan
-```
+Bu komutu çalıştırın:
 
-### Belirli Bir Versiyon (Stabil)
-```yaml
-dependencies:
-  dt_flutter_smart_rating:
-    git:
-      url: https://github.com/muratoner/dt_flutter_smart_rating.git
-      ref: v0.0.2  # Belirli bir versiyona sabitle
-```
-
-Ardından çalıştırın:
+Dart ile:
 ```bash
-flutter pub get
+dart pub add dt_flutter_smart_rating
+```
+
+Flutter ile:
+```bash
+flutter pub add dt_flutter_smart_rating
+```
+
+Bu, `pubspec.yaml` dosyanıza aşağıdaki gibi bir satır ekleyecek (ve otomatik olarak `flutter pub get` çalıştıracaktır):
+
+```yaml
+dependencies:
+  dt_flutter_smart_rating: ^0.0.4
+```
+
+### İçe Aktarın (Import)
+
+Artık Dart kodunuzda şunu kullanabilirsiniz:
+
+```dart
+import 'package:dt_flutter_smart_rating/dt_flutter_smart_rating.dart';
 ```
 
 ## Kullanım
@@ -88,29 +92,35 @@ class _MyAppState extends State<MyApp> {
 
 ### 2. Ağı İzleme
 
-#### Dio Kullanarak (Opsiyonel)
+Ağ etkinliğini `SmartRating`'e bildirmek için network veya API katmanınızda manuel raporlama yöntemlerini çağırın.
 
-Projeniz Dio kullanıyorsa, önce `pubspec.yaml` dosyanıza ekleyin:
+#### Dio Kullanarak (Örnek Interceptor)
 
-```yaml
-dependencies:
-  dio: ^5.4.1
-```
-
-Ardından interceptor'ı ayrı olarak import edin ve Dio örneğinize ekleyin:
+Eğer [Dio](https://pub.dev/packages/dio) kullanıyorsanız, raporlamayı otomatikleştirmek için basit bir interceptor oluşturabilirsiniz:
 
 ```dart
-import 'package:dt_flutter_smart_rating/src/network/smart_rating_dio_interceptor.dart';
+class SmartRatingInterceptor extends Interceptor {
+  @override
+  void onResponse(Response response, ResponseInterceptorHandler handler) {
+    SmartRating().reportNetworkSuccess();
+    super.onResponse(response, handler);
+  }
 
+  @override
+  void onError(DioException err, ErrorInterceptorHandler handler) {
+    SmartRating().reportNetworkFailure();
+    super.onError(err, handler);
+  }
+}
+
+// Dio örneğinize ekleyin:
 final dio = Dio();
-dio.interceptors.add(SmartRatingDioInterceptor());
+dio.interceptors.add(SmartRatingInterceptor());
 ```
 
-> **Not**: Dio interceptor, Dio yüklü olmadığında derleme hatalarını önlemek için ana paketten dışa aktarılmaz. Prodüksiyonda, `lib/src/network/smart_rating_dio_interceptor.dart` dosyasını kendi projenize kopyalayın veya doğrudan import edin (bu, implementation import hakkında bir lint uyarısı tetikleyebilir).
+#### Manuel Raporlama
 
-#### Manuel Raporlama (Dio olmayan projeler için)
-
-Dio kullanmıyorsanız, başarı veya başarısızlığı manuel olarak raporlayabilirsiniz:
+Dio kullanmıyorsanız, ağ yanıtınıza göre başarı veya başarısızlığı manuel olarak raporlayabilirsiniz:
 
 ```dart
 // Başarılı olduğunda
