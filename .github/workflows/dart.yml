@@ -22,6 +22,9 @@ jobs:
         with:
           channel: stable
       - run: flutter pub get
+      - name: Analyze project
+        run: flutter analyze
       - name: Run tests with coverage
         run: ./scripts/check_coverage.sh 80
-      - run: flutter build ios --release --no-codesign
+      - name: Check publish warnings
+        run: flutter pub publish --dry-run
