@@ -22,5 +22,6 @@ jobs:
         with:
           channel: stable
       - run: flutter pub get
-      - run: flutter test
+      - name: Run tests with coverage
+        run: ./scripts/check_coverage.sh 80
       - run: flutter build ios --release --no-codesign
