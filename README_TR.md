@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/smart_rating_icon.png" width="120" height="120" alt="Smart Rating Logo">
+</p>
+
 # Flutter için Smart Rating
 
 Flutter uygulamaları için, kullanıcıların kullanım deneyimine ve ağ başarısına dayalı olarak uygulamayı puanlamasını isteyen akıllı bir derecelendirme diyalog paketi.
@@ -14,6 +18,20 @@ Flutter uygulamaları için, kullanıcıların kullanım deneyimine ve ağ başa
 - **Kalıcılık**: Diyaloğun en son ne zaman gösterildiğini hatırlar ve bir bekleme süresine (varsayılan 30 gün) saygı duyar.
 - **Yerelleştirme**: Tamamen özelleştirilebilir metinler.
 - **Hata Takibi**: Ağ hatalarını takip eder ve derecelendirme diyaloğunu yalnızca koşullar sağlandığında gösterir.
+
+## Ekran Görüntüleri
+
+### Temalar
+
+| Modern Açık | Modern Koyu | Canlı Gradyan |
+| :---: | :---: | :---: |
+| <img src="./assets/light.png" width="200" alt="Modern Açık"> | <img src="./assets/dark.png" width="200" alt="Modern Koyu"> | <img src="./assets/vibrant_1.png" width="200" alt="Canlı Gradyan"> |
+
+### Tüm Akış (Canlı Gradyan Teması)
+
+| 1. Puanlama | 2. Düşük Puan Geri Bildirim | 3. Yüksek Puan (Mağaza) | 4. Teşekkür |
+| :---: | :---: | :---: | :---: |
+| <img src="./assets/vibrant_1.png" width="150" alt="Adım 1"> | <img src="./assets/vibrant_2.png" width="150" alt="Adım 2"> | <img src="./assets/vibrant_3.png" width="150" alt="Adım 3"> | <img src="./assets/vibrant_4.png" width="150" alt="Adım 4"> |
 
 ## Kurulum
 

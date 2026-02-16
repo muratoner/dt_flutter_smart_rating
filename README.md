@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/smart_rating_icon.png" width="120" height="120" alt="Smart Rating Logo">
+</p>
+
 # Smart Rating for Flutter
 
 A smart rating dialog package for Flutter that prompts users to rate the app based on their usage experience and network success.
@@ -14,6 +18,20 @@ A smart rating dialog package for Flutter that prompts users to rate the app bas
 - **Persistence**: Remembers when the dialog was last shown and respects a cooldown period (default 30 days).
 - **Localization**: Fully customizable text strings.
 - **Failure Tracking**: Track network failures and show rating dialog only when conditions are met.
+
+## Screenshots
+
+### Themes
+
+| Modern Light | Modern Dark | Vibrant Gradient |
+| :---: | :---: | :---: |
+| <img src="./assets/light.png" width="200" alt="Modern Light"> | <img src="./assets/dark.png" width="200" alt="Modern Dark"> | <img src="./assets/vibrant_1.png" width="200" alt="Vibrant Gradient"> |
+
+### Full Flow (Vibrant Gradient Theme)
+
+| 1. Rating | 2. Low Rating Feedback | 3. High Rating (Store) | 4. Thank You |
+| :---: | :---: | :---: | :---: |
+| <img src="./assets/vibrant_1.png" width="150" alt="Step 1"> | <img src="./assets/vibrant_2.png" width="150" alt="Step 2"> | <img src="./assets/vibrant_3.png" width="150" alt="Step 3"> | <img src="./assets/vibrant_4.png" width="150" alt="Step 4"> |
 
 ## Installation
 
